@@ -1,0 +1,48 @@
+.navbar-custom {
+  --bs-navbar-color: #020931;  
+  --bs-navbar-hover-color: #2685f1; 
+  --bs-navbar-active-color: #02071f;
+  margin: 20px;
+  margin-left: 50px;
+  margin-right: 50px;
+}
+
+
+
+.margin-carrousel{
+
+  margin: 100px;
+  margin-left: 180px;
+  margin-right: 180px;
+}
+
+img{
+
+  border-radius: 100px;
+}
+
+.subtitulo{
+  text-align: left;
+  font-size: 24px;
+  margin-top: 45px;
+  margin-bottom: 25px;
+}
+
+.titulo{
+  text-align: center;
+  font-size: 30px;
+}
+
+.card{
+  margin: 10px;
+  border: 5px #dbe6f3;
+}
+
+.cards{
+  display: flex;
+}
+.card-img-top {
+  height: 180px;
+  object-fit: cover;
+}
+

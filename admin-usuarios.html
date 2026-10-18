@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mantenedor de Usuarios | NutriVida Admin</title>
+    <link rel="stylesheet" href="styleAdmin.css">
+</head>
+<body>
+
+    <div class="admin-layout">
+        
+        <nav class="barra">
+            <h2>NutriVida Admin</h2>
+            <ul>
+                <li><a href="admin.html">Inicio</a></li>
+                <li><a href="admin-servicios.html">Mantenedor Servicios</a></li>
+                <li><a href="admin-usuarios.html" style="color: #3498db;">Mantenedor Usuarios</a></li>
+                <li><a href="index.html" style="color: #ff6b6b;">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+
+        <main class="contenido">
+            <h1>Gestión de Usuarios</h1>
+            <p>Aquí puedes crear, editar o eliminar los accesos al sistema y asignar roles.</p>
+
+            <div style="margin-top: 30px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 6px;">
+                
+                <div class="fila-grid encabezado">
+                    <div class="columna-grid">ID</div>
+                    <div class="columna-grid">Nombre</div>
+                    <div class="columna-grid">Correo</div>
+                    <div class="columna-grid">Rol</div>
+                    <div class="columna-accion">Acciones</div>
+                </div>
+
+                <div class="fila-grid">
+                    <div class="columna-grid">1</div>
+                    <div class="columna-grid">Juan Pérez</div>
+                    <div class="columna-grid">admin@demo.cl</div>
+                    <div class="columna-grid"><span style="background-color: #3498db; color: white; padding: 3px 8px; border-radius: 10px; font-size: 12px;">Administrador</span></div>
+                    <div class="columna-accion">
+                        <button onclick="editarUsuario(1, 'Juan Pérez', 'admin@demo.cl', 'Administrador')" style="background-color: #f1c40f; border: none; padding: 5px 10px; cursor: pointer;">Editar</button>
+                        <button style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer;">Borrar</button>
+                    </div>
+                </div>
+
+                <div class="fila-grid">
+                    <div class="columna-grid">2</div>
+                    <div class="columna-grid">María López</div>
+                    <div class="columna-grid">maria@correo.cl</div>
+                    <div class="columna-grid"><span style="background-color: #2ecc71; color: white; padding: 3px 8px; border-radius: 10px; font-size: 12px;">Paciente</span></div>
+                    <div class="columna-accion">
+                        <button onclick="editarUsuario(2, 'María López', 'maria@correo.cl', 'Paciente')" style="background-color: #f1c40f; border: none; padding: 5px 10px; cursor: pointer;">Editar</button>
+                        <button style="background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer;">Borrar</button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="form-admin">
+                <h3 id="titulo-formulario-usuario">Agregar Nuevo Usuario</h3>
+                
+                <label>ID del Usuario:</label>
+                <input type="text" id="admin-id-usuario" placeholder="Generado automáticamente" readonly style="background-color: #eee;">
+
+                <label>Nombre Completo:</label>
+                <input type="text" id="admin-nombre-usuario" placeholder="Ej: Pedro Gómez">
+
+                <label>Correo Electrónico:</label>
+                <input type="email" id="admin-correo-usuario" placeholder="Ej: pedro@correo.cl">
+
+                <label>Contraseña:</label>
+                <input type="password" id="admin-clave-usuario" placeholder="Dejar en blanco para mantener la actual">
+
+                <label>Rol en el sistema:</label>
+                <select id="admin-rol-usuario" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="">Seleccione un rol...</option>
+                    <option value="Paciente">Paciente</option>
+                    <option value="Administrador">Administrador</option>
+                </select>
+
+                <button onclick="guardarUsuario()" style="background-color: #2ecc71; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                    Guardar Usuario
+                </button>
+                <button onclick="limpiarFormularioUsuario()" style="background-color: #95a5a6; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+                    Cancelar / Limpiar
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="admin-usuarios.js"></script>
+</body>
+</html>

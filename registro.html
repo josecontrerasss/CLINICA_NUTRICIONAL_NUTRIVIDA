@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro | NutriVida</title>
+    <link rel="stylesheet" href="styleLogin.css">
+</head>
+<body>
+    
+    <div class="login" style="width: 450px; margin-top: 40px; margin-bottom: 40px;">
+        
+        <h1>Registro de Usuario</h1>
+
+        <label>RUN (Sin puntos ni guion):</label>
+        <input type="text" id="run" maxlength="9" placeholder="123456789">
+        <span id="error-run" style="color: red; font-size: 12px; display: block;"></span>
+        <br>
+
+        <label>Nombre:</label>
+        <input type="text" id="nombre" maxlength="50">
+        <span id="error-nombre" style="color: red; font-size: 12px; display: block;"></span>
+        <br>
+
+        <label>Apellidos:</label>
+        <input type="text" id="apellidos" maxlength="100">
+        <span id="error-apellidos" style="color: red; font-size: 12px; display: block;"></span>
+        <br>
+
+        <label>Correo Electrónico:</label>
+        <input type="email" id="correo" maxlength="100">
+        <span id="error-correo" style="color: red; font-size: 12px; display: block;"></span>
+        <br>
+
+        <label>Contraseña:</label>
+        <input type="password" id="clave" maxlength="10" placeholder="Entre 4 y 10 caracteres">
+        <span id="error-clave" style="color: red; font-size: 12px; display: block;"></span>
+        <br>
+
+        <label>Fecha de Nacimiento (Opcional):</label>
+        <input type="date" id="fechaNacimiento">
+        <br><br>
+
+        <label>Tipo de Usuario:</label>
+        <select id="tipoUsuario" style="width: 100%; padding: 10px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px;">
+            <option value="">Seleccione un rol...</option>
+            <option value="Paciente">Paciente</option>
+            <option value="Administrador">Administrador</option>
+        </select>
+        <span id="error-tipo" style="color: red; font-size: 12px; display: block;"></span>
+        <br><br>
+
+        <label>Región:</label>
+        <select id="region" onchange="cargarComunas()" style="width: 100%; padding: 10px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px;">
+            <option value="">Seleccione una región...</option>
+        </select>
+        <span id="error-region" style="color: red; font-size: 12px; display: block;"></span>
+        <br><br>
+
+        <label>Comuna:</label>
+        <select id="comuna" style="width: 100%; padding: 10px; margin-bottom: 5px; border: 1px solid #ccc; border-radius: 4px;">
+            <option value="">Seleccione primero una región...</option>
+        </select>
+        <span id="error-comuna" style="color: red; font-size: 12px; display: block;"></span>
+        <br><br>
+
+        <label>Dirección:</label>
+        <input type="text" id="direccion" maxlength="300">
+        <span id="error-direccion" style="color: red; font-size: 12px; display: block;"></span>
+        <br>
+
+        <button onclick="registrar()">Registrarse</button>
+        
+        <br><br>
+        <a href="login.html">¿Ya tienes cuenta? Inicia sesión aquí</a>
+
+        <br><br>
+        <a href="index.html">Volver al Inicio</a>
+
+    </div>
+
+    <script src="registro.js"></script>
+</body>
+</html>

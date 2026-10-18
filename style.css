@@ -1,7 +1,13 @@
 .navbar-custom {
+<<<<<<< HEAD
     --bs-navbar-color: #020931;  
     --bs-navbar-hover-color: #2685f1; 
     --bs-navbar-active-color: #02071f;
+=======
+  --bs-navbar-color: #020931;  
+  --bs-navbar-hover-color: #2685f1; 
+  --bs-navbar-active-color: #02071f;
+>>>>>>> 5d87cd81c8a7bf13b3948c6f15eaa9f053eccf7b
   margin: 20px;
   margin-left: 50px;
   margin-right: 50px;

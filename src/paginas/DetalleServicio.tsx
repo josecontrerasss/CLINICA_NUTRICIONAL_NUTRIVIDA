@@ -1,55 +1,66 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { servicios } from "./Servicios";
-import BotonVolver from "../componentes/atomos/BotonVolver";
 
 function DetalleServicio() {
     const { id } = useParams();
-    const navigate = useNavigate();
 
-    const producto = servicios.find(
-        (item) => item.id === Number(id)
+    const servicio = servicios.find(
+        item => item.id === Number(id)
     );
 
-    const agregarAReserva = () => {
-        if (!producto) return;
-
-        let carritoGuardado = localStorage.getItem("miReserva");
-        let listaReserva = [];
-
-        if (carritoGuardado !== null) {
-            listaReserva = JSON.parse(carritoGuardado);
+    const agregarAlCarrito = () => {
+        if (servicio) {
+            const guardado = localStorage.getItem("miReserva");
+            let listaActual = guardado ? JSON.parse(guardado) : [];
+            listaActual.push(servicio);
+            localStorage.setItem("miReserva", JSON.stringify(listaActual));
+            alert("Servicio agregado a tus reservas");
         }
-
-        listaReserva.push(producto);
-
-        localStorage.setItem("miReserva", JSON.stringify(listaReserva));
-
-        alert("¡Servicio agregado a tu reserva!");
-        
-        navigate("/servicios");
     };
 
+    if (!servicio) {
+        return (
+            <main className="container text-center my-5 flex-grow-1">
+                <h2>Servicio no encontrado</h2>
+                <Link to="/servicios" className="btn btn-primary mt-3">Volver al catálogo</Link>
+            </main>
+        );
+    }
+
     return (
-        <main className="container my-5 text-center flex-grow-1">
-            <h1 className="mb-4">Detalle del Servicio</h1>
-            
-            <div className="card mx-auto shadow-sm" style={{ maxWidth: '500px' }}>
-                <img 
-                    src={producto?.imagen} 
-                    className="card-img-top" 
-                    alt={producto?.titulo} 
-                    style={{ height: '300px', objectFit: 'contain', backgroundColor: '#f8f9fa', padding: '15px' }} 
-                />
-                <div className="card-body p-4">
-                    <h2 className="card-title mb-3">{producto?.titulo}</h2>
-                    <p className="fw-bold text-primary fs-4 mb-3">${producto?.precio?.toLocaleString('es-CL')}</p>
-                    <p className="card-text text-muted mb-4">{producto?.descripcion}</p>
+        <main className="container my-5 flex-grow-1">
+            <nav aria-label="breadcrumb" className="mb-4">
+                <ol className="breadcrumb">
+                    <li className="breadcrumb-item"><Link to="/">Inicio</Link></li>
+                    <li className="breadcrumb-item"><Link to="/servicios">Servicios</Link></li>
+                    <li className="breadcrumb-item active" aria-current="page">{servicio.titulo}</li>
+                </ol>
+            </nav>
+
+            <div className="row">
+                <div className="col-md-6 mb-4">
+                    <img 
+                        src={servicio.imagen} 
+                        className="img-fluid rounded shadow-sm w-100" 
+                        alt={servicio.titulo} 
+                        style={{ maxHeight: '400px', objectFit: 'cover' }}
+                    />
+                </div>
+                <div className="col-md-6">
+                    <h1 className="mb-3">{servicio.titulo}</h1>
+                    <p className="fs-5 text-muted mb-4">{servicio.descripcion}</p>
+                    <h2 className="text-primary fw-bold mb-4">
+                        Valor: ${servicio.precio.toLocaleString('es-CL')}
+                    </h2>
                     
-                    <button onClick={agregarAReserva} className="btn btn-success w-100 mb-2">
-                        Agregar a mi Reserva
-                    </button>
-                    
-                    <BotonVolver/>
+                    <div className="d-flex gap-3">
+                        <button onClick={agregarAlCarrito} className="btn btn-success btn-lg">
+                            Reservar Hora
+                        </button>
+                        <Link to="/servicios" className="btn btn-outline-secondary btn-lg">
+                            Volver
+                        </Link>
+                    </div>
                 </div>
             </div>
         </main>

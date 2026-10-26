@@ -30,6 +30,9 @@ function AdminServicios() {
     const borrarServicio = (id: number) => {
         const nuevaLista = servicios.filter(servicio => servicio.id !== id);
         setServicios(nuevaLista);
+        if (idActual === id) {
+            limpiarFormulario();
+        }
     };
 
     const guardarServicio = () => {
@@ -98,20 +101,22 @@ function AdminServicios() {
                             </thead>
                             <tbody>
                                 {servicios.map(servicio => (
-                                    <tr key={servicio.id}>
+                                    <tr key={servicio.id} data-testid={`fila-servicio-${servicio.id}`}>
                                         <td>{servicio.id}</td>
-                                        <td>{servicio.nombre}</td>
+                                        <td data-testid={`nombre-servicio-${servicio.id}`}>{servicio.nombre}</td>
                                         <td>${servicio.precio.toLocaleString('es-CL')}</td>
                                         <td>
                                             <button 
                                                 onClick={() => editarServicio(servicio)} 
                                                 className="btn btn-warning btn-sm me-2"
+                                                data-testid={`btn-editar-${servicio.id}`}
                                             >
                                                 Editar
                                             </button>
                                             <button 
                                                 onClick={() => borrarServicio(servicio.id)} 
                                                 className="btn btn-danger btn-sm"
+                                                data-testid={`btn-borrar-${servicio.id}`}
                                             >
                                                 Borrar
                                             </button>
@@ -130,8 +135,9 @@ function AdminServicios() {
                         </h3>
                         
                         <div className="mb-3">
-                            <label className="form-label fw-bold">Nombre del Servicio:</label>
+                            <label htmlFor="nombreServicio" className="form-label fw-bold">Nombre del Servicio:</label>
                             <input 
+                                id="nombreServicio"
                                 type="text" 
                                 className="form-control" 
                                 value={nombre} 
@@ -140,8 +146,9 @@ function AdminServicios() {
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label fw-bold">Valor ($):</label>
+                            <label htmlFor="precioServicio" className="form-label fw-bold">Valor ($):</label>
                             <input 
+                                id="precioServicio"
                                 type="number" 
                                 className="form-control" 
                                 value={precio} 
@@ -150,8 +157,9 @@ function AdminServicios() {
                         </div>
 
                         <div className="mb-4">
-                            <label className="form-label fw-bold">Descripción:</label>
+                            <label htmlFor="descripcionServicio" className="form-label fw-bold">Descripción:</label>
                             <textarea 
+                                id="descripcionServicio"
                                 className="form-control" 
                                 rows={3} 
                                 value={descripcion} 

@@ -13,6 +13,7 @@ import Login from "./paginas/Login";
 import Registro from "./paginas/Registro";
 import AdminServicios from "./paginas/AdminServicios";
 import AdminUsuarios from "./paginas/AdminUsuarios";
+import Pago from "./paginas/Pago";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/contacto" element={<><Navbar /><Contacto /><Footer /></>} />
           <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
           <Route path="/registro" element={<><Navbar /><Registro /><Footer /></>} />
+          <Route path="/pago" element={<><Navbar /><Pago /><Footer /></>} /> {/* ¡Nueva ruta conectada! */}
           
           <Route path="/admin" element={<AdminServicios />} />
           <Route path="/admin-usuarios" element={<AdminUsuarios />} />

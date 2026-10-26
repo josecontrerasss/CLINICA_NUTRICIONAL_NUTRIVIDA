@@ -59,10 +59,12 @@ function Reserva() {
                 <Link to="/servicios" className="btn btn-outline-secondary me-2">
                     Seguir agregando servicios
                 </Link>
+                
+                {/* Modificación clave: Reemplazamos el alert por un enlace al componente Pago */}
                 {listaReserva.length > 0 && (
-                    <button onClick={() => alert("Simulación de pago")} className="btn btn-success">
-                        Confirmar Reserva
-                    </button>
+                    <Link to="/pago" className="btn btn-success px-4">
+                        Pagar y Confirmar
+                    </Link>
                 )}
             </div>
         </main>

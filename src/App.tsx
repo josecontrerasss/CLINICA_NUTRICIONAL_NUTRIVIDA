@@ -13,6 +13,7 @@ import Login from "./paginas/Login";
 import Registro from "./paginas/Registro";
 import AdminServicios from "./paginas/AdminServicios";
 import AdminUsuarios from "./paginas/AdminUsuarios";
+import AdminContactos from "./paginas/AdminContactos";
 import Pago from "./paginas/Pago";
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
           
           <Route path="/admin" element={<AdminServicios />} />
           <Route path="/admin-usuarios" element={<AdminUsuarios />} />
+          <Route path="/admin-contactos" element={<AdminContactos />} />
       </Routes>
     </div>
   );

@@ -10,10 +10,12 @@ function FormularioContacto() {
     const [errorNombre, setErrorNombre] = useState("");
     const [errorCorreo, setErrorCorreo] = useState("");
     const [errorMensaje, setErrorMensaje] = useState("");
+    const [enviando, setEnviando] = useState(false);
 
-    const manejarEnvio = (e: React.FormEvent<HTMLFormElement>) => {
+    const manejarEnvio = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-    
+        if (enviando) return;
+
         const errNombre = validarNombre(nombre);
         const errCorreo = validarCorreo(correo);
         const errMsj = validarMensaje(mensaje);
@@ -22,14 +24,41 @@ function FormularioContacto() {
         setErrorCorreo(errCorreo);
         setErrorMensaje(errMsj);
 
-        if (errNombre === "" && errCorreo === "" && errMsj === "") {
+        if (errNombre !== "" || errCorreo !== "" || errMsj !== "") {
+            return;
+        }
+
+        setEnviando(true);
+
+        try {
+            const respuesta = await fetch("http://localhost:8082/api/contactos", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    nombreCompleto: nombre.trim(),
+                    correo: correo.trim(),
+                    mensaje: mensaje.trim(),
+                }),
+            });
+
+            if (!respuesta.ok) {
+                throw new Error(`Error HTTP ${respuesta.status}`);
+            }
+
             alert("¡Tu mensaje ha sido enviado con éxito! Nos contactaremos contigo pronto.");
             setNombre("");
             setCorreo("");
             setMensaje("");
+        } catch (error) {
+            console.error("Error al enviar el contacto:", error);
+            alert("No se pudo enviar el mensaje. Verifique que el servidor esté activo.");
+        } finally {
+            setEnviando(false);
         }
     };
-    
+
     return (
         <form onSubmit={manejarEnvio} noValidate>
             <CampoFormulario
@@ -67,8 +96,8 @@ function FormularioContacto() {
                 {errorMensaje && <span className="text-danger" style={{ fontSize: '12px' }}>{errorMensaje}</span>}
             </div>
 
-            <button type="submit" className="btn btn-primary w-100 mt-3 py-2">
-                Enviar Mensaje
+            <button type="submit" className="btn btn-primary w-100 mt-3 py-2" disabled={enviando}>
+                {enviando ? "Enviando..." : "Enviar Mensaje"}
             </button>
         </form>
     );

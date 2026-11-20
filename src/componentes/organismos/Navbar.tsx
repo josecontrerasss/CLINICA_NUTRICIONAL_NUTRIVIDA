@@ -1,6 +1,16 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { obtenerUsuario, cerrarSesion } from "../../utilidades/auth";
 
 function Navbar() {
+    const navigate = useNavigate();
+    useLocation();
+    const usuario = obtenerUsuario();
+
+    const manejarLogout = () => {
+        cerrarSesion();
+        navigate("/login");
+    };
+
     return (
         <header>
             <nav className="navbar navbar-expand-lg bg-body-tertiary navbar-custom">
@@ -21,9 +31,28 @@ function Navbar() {
                         </div>
                     </div>
 
-                    <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <Link className="btn btn-outline-primary me-md-2" to="/login">Login</Link>
-                        <Link className="btn btn-primary" to="/reserva">Reservar Hora</Link>
+                    <div className="d-grid gap-2 d-md-flex justify-content-md-end align-items-center">
+                        {usuario ? (
+                            <>
+                                <span className="me-2 fw-semibold text-secondary">
+                                    Hola, {usuario.nombre}
+                                </span>
+                                {usuario.rol === "ADMINISTRADOR" && (
+                                    <Link className="btn btn-warning btn-sm me-2" to="/admin">
+                                        Panel Admin
+                                    </Link>
+                                )}
+                                <Link className="btn btn-primary me-2" to="/reserva">Reservar Hora</Link>
+                                <button onClick={manejarLogout} className="btn btn-outline-danger">
+                                    Cerrar Sesión
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link className="btn btn-outline-primary me-md-2" to="/login">Login</Link>
+                                <Link className="btn btn-primary" to="/reserva">Reservar Hora</Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </nav>

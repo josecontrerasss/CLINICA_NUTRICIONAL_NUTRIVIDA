@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import CampoFormulario from "../moleculas/CampoFormulario";
-import { 
-    validarRUT, validarNombre, validarApellidos, validarCorreo, 
-    validarPassword, validarSeleccion, validarDireccion 
+import {
+    validarRUT,
+    validarNombre,
+    validarApellidos,
+    validarCorreo,
+    validarPassword,
+    validarSeleccion,
+    validarDireccion
 } from "../../utilidades/validaciones";
 
 const datosRegiones = [
@@ -28,7 +33,6 @@ function FormularioRegistro() {
     const [correo, setCorreo] = useState("");
     const [clave, setClave] = useState("");
     const [fechaNacimiento, setFechaNacimiento] = useState("");
-    const [tipoUsuario, setTipoUsuario] = useState("");
     const [region, setRegion] = useState("");
     const [comuna, setComuna] = useState("");
     const [direccion, setDireccion] = useState("");
@@ -40,21 +44,21 @@ function FormularioRegistro() {
     const [errorApellidos, setErrorApellidos] = useState("");
     const [errorCorreo, setErrorCorreo] = useState("");
     const [errorClave, setErrorClave] = useState("");
-    const [errorTipo, setErrorTipo] = useState("");
     const [errorRegion, setErrorRegion] = useState("");
     const [errorComuna, setErrorComuna] = useState("");
     const [errorDireccion, setErrorDireccion] = useState("");
+    const [errorServidor, setErrorServidor] = useState("");
+    const [enviando, setEnviando] = useState(false);
 
     const navigate = useNavigate();
 
-    // Reemplaza tu función cargarComunas()
     useEffect(() => {
         if (region === "") {
             setComunasDisponibles([]);
             setComuna("");
             return;
         }
-        
+
         let comunasEncontradas: string[] = [];
         for (let i = 0; i < datosRegiones.length; i++) {
             if (datosRegiones[i].nombre === region) {
@@ -62,18 +66,18 @@ function FormularioRegistro() {
             }
         }
         setComunasDisponibles(comunasEncontradas);
-        setComuna(""); // Resetea la comuna al cambiar de región
+        setComuna("");
     }, [region]);
 
-    const manejarEnvio = (e: React.FormEvent<HTMLFormElement>) => {
+    const manejarEnvio = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-    
+        setErrorServidor("");
+
         const errRun = validarRUT(run);
         const errNombre = validarNombre(nombre);
         const errApellidos = validarApellidos(apellidos);
         const errCorreo = validarCorreo(correo);
         const errClave = validarPassword(clave);
-        const errTipo = validarSeleccion(tipoUsuario, "Seleccione el tipo de usuario.");
         const errRegion = validarSeleccion(region, "Seleccione una región.");
         const errComuna = validarSeleccion(comuna, "Seleccione una comuna.");
         const errDireccion = validarDireccion(direccion);
@@ -83,19 +87,60 @@ function FormularioRegistro() {
         setErrorApellidos(errApellidos);
         setErrorCorreo(errCorreo);
         setErrorClave(errClave);
-        setErrorTipo(errTipo);
         setErrorRegion(errRegion);
         setErrorComuna(errComuna);
         setErrorDireccion(errDireccion);
 
-        if (!errRun && !errNombre && !errApellidos && !errCorreo && !errClave && !errTipo && !errRegion && !errComuna && !errDireccion) {
-            alert("¡Usuario registrado con éxito!");
+        if (errRun || errNombre || errApellidos || errCorreo || errClave || errRegion || errComuna || errDireccion || enviando) {
+            return;
+        }
+
+        setEnviando(true);
+
+        try {
+            const respuesta = await fetch("http://localhost:8081/api/auth/registro", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    run: run.trim(),
+                    nombre: nombre.trim(),
+                    apellidos: apellidos.trim(),
+                    correo: correo.trim(),
+                    password: clave,
+                    fechaNacimiento: fechaNacimiento || null,
+                    region,
+                    comuna,
+                    direccion: direccion.trim(),
+                }),
+            });
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                setErrorServidor(datos.error || "No se pudo completar el registro.");
+                return;
+            }
+
+            alert("¡Usuario registrado con éxito! Ahora puedes iniciar sesión.");
             navigate("/login");
+        } catch (error) {
+            console.error("Error al registrar usuario:", error);
+            setErrorServidor("No se pudo conectar con el servidor.");
+        } finally {
+            setEnviando(false);
         }
     };
-    
+
     return (
         <form onSubmit={manejarEnvio} noValidate>
+            {errorServidor && (
+                <div className="alert alert-danger py-2 text-start" style={{ fontSize: '14px' }}>
+                    {errorServidor}
+                </div>
+            )}
+
             <CampoFormulario
                 etiqueta="RUN (Sin puntos ni guion):"
                 tipo="text"
@@ -147,24 +192,10 @@ function FormularioRegistro() {
             />
 
             <div className="mb-3 text-start">
-                <label className="form-label fw-bold">Tipo de Usuario:</label>
-                <select 
-                    className="form-select" 
-                    value={tipoUsuario} 
-                    onChange={(e) => setTipoUsuario(e.target.value)}
-                >
-                    <option value="">Seleccione un rol...</option>
-                    <option value="Paciente">Paciente</option>
-                    <option value="Administrador">Administrador</option>
-                </select>
-                {errorTipo && <span className="text-danger" style={{ fontSize: '12px' }}>{errorTipo}</span>}
-            </div>
-
-            <div className="mb-3 text-start">
                 <label className="form-label fw-bold">Región:</label>
-                <select 
-                    className="form-select" 
-                    value={region} 
+                <select
+                    className="form-select"
+                    value={region}
                     onChange={(e) => setRegion(e.target.value)}
                 >
                     <option value="">Seleccione una región...</option>
@@ -177,9 +208,9 @@ function FormularioRegistro() {
 
             <div className="mb-3 text-start">
                 <label className="form-label fw-bold">Comuna:</label>
-                <select 
-                    className="form-select" 
-                    value={comuna} 
+                <select
+                    className="form-select"
+                    value={comuna}
                     onChange={(e) => setComuna(e.target.value)}
                     disabled={comunasDisponibles.length === 0}
                 >
@@ -202,8 +233,8 @@ function FormularioRegistro() {
                 error={errorDireccion}
             />
 
-            <button type="submit" className="btn btn-primary w-100 mt-3 py-2">
-                Registrarse
+            <button type="submit" className="btn btn-primary w-100 mt-3 py-2" disabled={enviando}>
+                {enviando ? "Registrando..." : "Registrarse"}
             </button>
         </form>
     );

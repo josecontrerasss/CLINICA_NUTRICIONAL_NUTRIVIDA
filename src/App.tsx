@@ -5,7 +5,7 @@ import Inicio from "./paginas/Inicio";
 import Servicios from "./paginas/Servicios";
 import DetalleServicio from "./paginas/DetalleServicio";
 import Nosotros from "./paginas/Nosotros";
-import Reserva from "./paginas/Reserva"; 
+import Reserva from "./paginas/Reserva";
 import Novedades from "./paginas/Novedades";
 import DetalleNovedad from "./paginas/DetalleNovedad";
 import Contacto from "./paginas/Contacto";
@@ -15,6 +15,7 @@ import AdminServicios from "./paginas/AdminServicios";
 import AdminUsuarios from "./paginas/AdminUsuarios";
 import AdminContactos from "./paginas/AdminContactos";
 import Pago from "./paginas/Pago";
+import RutaProtegida from "./componentes/RutaProtegida";
 
 function App() {
   return (
@@ -30,11 +31,32 @@ function App() {
           <Route path="/contacto" element={<><Navbar /><Contacto /><Footer /></>} />
           <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
           <Route path="/registro" element={<><Navbar /><Registro /><Footer /></>} />
-          <Route path="/pago" element={<><Navbar /><Pago /><Footer /></>} /> {/* ¡Nueva ruta conectada! */}
-          
-          <Route path="/admin" element={<AdminServicios />} />
-          <Route path="/admin-usuarios" element={<AdminUsuarios />} />
-          <Route path="/admin-contactos" element={<AdminContactos />} />
+          <Route path="/pago" element={<><Navbar /><Pago /><Footer /></>} />
+
+          <Route
+              path="/admin"
+              element={
+                  <RutaProtegida rolRequerido="ADMINISTRADOR">
+                      <AdminServicios />
+                  </RutaProtegida>
+              }
+          />
+          <Route
+              path="/admin-usuarios"
+              element={
+                  <RutaProtegida rolRequerido="ADMINISTRADOR">
+                      <AdminUsuarios />
+                  </RutaProtegida>
+              }
+          />
+          <Route
+              path="/admin-contactos"
+              element={
+                  <RutaProtegida rolRequerido="ADMINISTRADOR">
+                      <AdminContactos />
+                  </RutaProtegida>
+              }
+          />
       </Routes>
     </div>
   );

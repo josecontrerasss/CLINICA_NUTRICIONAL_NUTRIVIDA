@@ -1,67 +1,169 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import CampoFormulario from "../componentes/moleculas/CampoFormulario";
 import { validarNombre } from "../utilidades/validaciones";
+import { obtenerToken, cerrarSesion } from "../utilidades/auth";
+import type { ServicioItem } from "./Servicios";
 
 function AdminServicios() {
-    const [servicios, setServicios] = useState([
-        { id: 1, nombre: "Nutrición Deportiva", precio: 25000, descripcion: "" },
-        { id: 2, nombre: "Control de Peso", precio: 20000, descripcion: "" }
-    ]);
+    const [servicios, setServicios] = useState<ServicioItem[]>([]);
+    const [cargando, setCargando] = useState(true);
 
     const [idActual, setIdActual] = useState<number | null>(null);
-    const [nombre, setNombre] = useState("");
+    const [titulo, setTitulo] = useState("");
     const [precio, setPrecio] = useState("");
     const [descripcion, setDescripcion] = useState("");
+    const [imagen, setImagen] = useState("");
+
+    const [errorTitulo, setErrorTitulo] = useState("");
+    const [errorPrecio, setErrorPrecio] = useState("");
+
+    const navigate = useNavigate();
+
+    const obtenerCabeceras = () => ({
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${obtenerToken()}`
+    });
+
+    const manejarCerrarSesion = () => {
+        cerrarSesion();
+        navigate("/login");
+    };
+
+    const cargarServicios = async () => {
+        try {
+            const respuesta = await fetch("http://localhost:8083/api/servicios");
+            if (!respuesta.ok) {
+                throw new Error(`Error HTTP ${respuesta.status}`);
+            }
+            const datos: ServicioItem[] = await respuesta.json();
+            setServicios(datos);
+        } catch (error) {
+            console.error("Error al cargar servicios:", error);
+        } finally {
+            setCargando(false);
+        }
+    };
+
+    useEffect(() => {
+        cargarServicios();
+    }, []);
+
+    const limpiarErrores = () => {
+        setErrorTitulo("");
+        setErrorPrecio("");
+    };
 
     const limpiarFormulario = () => {
         setIdActual(null);
-        setNombre("");
+        setTitulo("");
         setPrecio("");
         setDescripcion("");
+        setImagen("");
+        limpiarErrores();
     };
 
-    const editarServicio = (servicio: any) => {
+    const editarServicio = (servicio: ServicioItem) => {
         setIdActual(servicio.id);
-        setNombre(servicio.nombre);
+        setTitulo(servicio.titulo);
         setPrecio(servicio.precio.toString());
         setDescripcion(servicio.descripcion || "");
+        setImagen(servicio.imagen || "");
+        limpiarErrores();
     };
 
-    const borrarServicio = (id: number) => {
-        const nuevaLista = servicios.filter(servicio => servicio.id !== id);
-        setServicios(nuevaLista);
-        if (idActual === id) {
-            limpiarFormulario();
+    const borrarServicio = async (id: number) => {
+        if (!window.confirm("¿Seguro que deseas eliminar este servicio?")) return;
+
+        try {
+            const respuesta = await fetch(`http://localhost:8083/api/servicios/${id}`, {
+                method: "DELETE",
+                headers: obtenerCabeceras()
+            });
+
+            if (respuesta.status === 401 || respuesta.status === 403) {
+                manejarCerrarSesion();
+                return;
+            }
+
+            if (!respuesta.ok) {
+                throw new Error(`Error HTTP ${respuesta.status}`);
+            }
+
+            setServicios(servicios.filter(servicio => servicio.id !== id));
+            if (idActual === id) {
+                limpiarFormulario();
+            }
+        } catch (error) {
+            console.error("Error al eliminar servicio:", error);
+            alert("No se pudo eliminar el servicio.");
         }
     };
 
-    const guardarServicio = () => {
-        if (validarNombre(nombre) !== "" || precio.trim() === "") {
-            alert("Debe completar el nombre y el precio.");
+    const guardarServicio = async () => {
+        const errTitulo = validarNombre(titulo);
+        const errPrecio = precio.trim() === "" || Number(precio) <= 0 ? "Debe ingresar un valor mayor a 0." : "";
+
+        setErrorTitulo(errTitulo);
+        setErrorPrecio(errPrecio);
+
+        if (errTitulo || errPrecio) {
             return;
         }
 
-        if (idActual !== null) {
-            const nuevaLista = servicios.map(servicio => {
-                if (servicio.id === idActual) {
-                    return { id: idActual, nombre, precio: Number(precio), descripcion };
+        const payload = {
+            titulo: titulo.trim(),
+            precio: Number(precio),
+            descripcion: descripcion.trim() || "Plan nutricional personalizado.",
+            imagen: imagen.trim() || "/Imagenes/Servicios/deportiva.jpg"
+        };
+
+        try {
+            if (idActual !== null) {
+                const respuesta = await fetch(`http://localhost:8083/api/servicios/${idActual}`, {
+                    method: "PUT",
+                    headers: obtenerCabeceras(),
+                    body: JSON.stringify(payload)
+                });
+
+                if (respuesta.status === 401 || respuesta.status === 403) {
+                    manejarCerrarSesion();
+                    return;
                 }
-                return servicio;
-            });
-            setServicios(nuevaLista);
-            alert("Servicio actualizado exitosamente.");
-        } else {
-            const nuevoServicio = {
-                id: Date.now(),
-                nombre,
-                precio: Number(precio),
-                descripcion
-            };
-            setServicios([...servicios, nuevoServicio]);
-            alert("Servicio creado exitosamente.");
+
+                if (!respuesta.ok) {
+                    throw new Error(`Error HTTP ${respuesta.status}`);
+                }
+
+                const actualizado: ServicioItem = await respuesta.json();
+                setServicios(servicios.map(s => (s.id === actualizado.id ? actualizado : s)));
+                alert("Servicio actualizado exitosamente.");
+            } else {
+                const respuesta = await fetch("http://localhost:8083/api/servicios", {
+                    method: "POST",
+                    headers: obtenerCabeceras(),
+                    body: JSON.stringify(payload)
+                });
+
+                if (respuesta.status === 401 || respuesta.status === 403) {
+                    manejarCerrarSesion();
+                    return;
+                }
+
+                if (!respuesta.ok) {
+                    throw new Error(`Error HTTP ${respuesta.status}`);
+                }
+
+                const creado: ServicioItem = await respuesta.json();
+                setServicios([...servicios, creado]);
+                alert("Servicio creado exitosamente.");
+            }
+
+            limpiarFormulario();
+        } catch (error) {
+            console.error("Error al guardar servicio:", error);
+            alert("Ocurrió un error al comunicarse con el servidor.");
         }
-        
-        limpiarFormulario();
     };
 
     return (
@@ -82,7 +184,12 @@ function AdminServicios() {
                         <Link to="/admin-contactos" className="nav-link text-white px-0">Bandeja de Mensajes</Link>
                     </li>
                     <li className="nav-item mt-4">
-                        <Link to="/login" className="nav-link text-danger px-0">Cerrar Sesión</Link>
+                        <button
+                            onClick={manejarCerrarSesion}
+                            className="btn btn-link nav-link text-danger px-0 text-start"
+                        >
+                            Cerrar Sesión
+                        </button>
                     </li>
                 </ul>
             </nav>
@@ -93,41 +200,45 @@ function AdminServicios() {
 
                 <div className="card shadow-sm mb-5">
                     <div className="card-body p-0">
-                        <table className="table table-hover mb-0">
-                            <thead className="table-light">
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Nombre del Servicio</th>
-                                    <th>Valor</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {servicios.map(servicio => (
-                                    <tr key={servicio.id} data-testid={`fila-servicio-${servicio.id}`}>
-                                        <td>{servicio.id}</td>
-                                        <td data-testid={`nombre-servicio-${servicio.id}`}>{servicio.nombre}</td>
-                                        <td>${servicio.precio.toLocaleString('es-CL')}</td>
-                                        <td>
-                                            <button 
-                                                onClick={() => editarServicio(servicio)} 
-                                                className="btn btn-warning btn-sm me-2"
-                                                data-testid={`btn-editar-${servicio.id}`}
-                                            >
-                                                Editar
-                                            </button>
-                                            <button 
-                                                onClick={() => borrarServicio(servicio.id)} 
-                                                className="btn btn-danger btn-sm"
-                                                data-testid={`btn-borrar-${servicio.id}`}
-                                            >
-                                                Borrar
-                                            </button>
-                                        </td>
+                        {cargando ? (
+                            <p className="p-4 mb-0 text-muted">Cargando servicios...</p>
+                        ) : (
+                            <table className="table table-hover mb-0 align-middle">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre del Servicio</th>
+                                        <th>Valor</th>
+                                        <th>Acciones</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {servicios.map(servicio => (
+                                        <tr key={servicio.id} data-testid={`fila-servicio-${servicio.id}`}>
+                                            <td>{servicio.id}</td>
+                                            <td data-testid={`nombre-servicio-${servicio.id}`}>{servicio.titulo}</td>
+                                            <td>${servicio.precio.toLocaleString('es-CL')}</td>
+                                            <td>
+                                                <button
+                                                    onClick={() => editarServicio(servicio)}
+                                                    className="btn btn-warning btn-sm me-2"
+                                                    data-testid={`btn-editar-${servicio.id}`}
+                                                >
+                                                    Editar
+                                                </button>
+                                                <button
+                                                    onClick={() => borrarServicio(servicio.id)}
+                                                    className="btn btn-danger btn-sm"
+                                                    data-testid={`btn-borrar-${servicio.id}`}
+                                                >
+                                                    Borrar
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
                     </div>
                 </div>
 
@@ -136,36 +247,41 @@ function AdminServicios() {
                         <h3 className="h5 mb-4">
                             {idActual ? `Editar Servicio (ID: ${idActual})` : "Agregar Nuevo Servicio"}
                         </h3>
-                        
-                        <div className="mb-3">
-                            <label htmlFor="nombreServicio" className="form-label fw-bold">Nombre del Servicio:</label>
-                            <input 
-                                id="nombreServicio"
-                                type="text" 
-                                className="form-control" 
-                                value={nombre} 
-                                onChange={(e) => setNombre(e.target.value)} 
-                            />
-                        </div>
 
-                        <div className="mb-3">
-                            <label htmlFor="precioServicio" className="form-label fw-bold">Valor ($):</label>
-                            <input 
-                                id="precioServicio"
-                                type="number" 
-                                className="form-control" 
-                                value={precio} 
-                                onChange={(e) => setPrecio(e.target.value)} 
-                            />
-                        </div>
+                        <CampoFormulario
+                            etiqueta="Nombre del Servicio:"
+                            tipo="text"
+                            nombre="tituloServicio"
+                            valor={titulo}
+                            alCambiar={setTitulo}
+                            error={errorTitulo}
+                        />
 
-                        <div className="mb-4">
+                        <CampoFormulario
+                            etiqueta="Valor ($):"
+                            tipo="number"
+                            nombre="precioServicio"
+                            valor={precio}
+                            alCambiar={setPrecio}
+                            error={errorPrecio}
+                        />
+
+                        <CampoFormulario
+                            etiqueta="Ruta de Imagen:"
+                            tipo="text"
+                            nombre="imagenServicio"
+                            valor={imagen}
+                            alCambiar={setImagen}
+                            placeholder="/Imagenes/Servicios/deportiva.jpg"
+                        />
+
+                        <div className="mb-4 text-start">
                             <label htmlFor="descripcionServicio" className="form-label fw-bold">Descripción:</label>
-                            <textarea 
+                            <textarea
                                 id="descripcionServicio"
-                                className="form-control" 
-                                rows={3} 
-                                value={descripcion} 
+                                className="form-control"
+                                rows={3}
+                                value={descripcion}
                                 onChange={(e) => setDescripcion(e.target.value)}
                             ></textarea>
                         </div>

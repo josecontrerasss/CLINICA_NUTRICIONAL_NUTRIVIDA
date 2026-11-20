@@ -1,43 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-export const servicios = [
-    { 
-        id: 1, 
-        titulo: "Nutrición Deportiva", 
-        precio: 25000, 
-        imagen: "/Imagenes/Servicios/deporte.jpg", 
-        descripcion: "Plan alimenticio enfocado en el rendimiento físico y recuperación." 
-    },
-    { 
-        id: 2, 
-        titulo: "Control de Peso", 
-        precio: 20000, 
-        imagen: "/Imagenes/Servicios/peso.jpg", 
-        descripcion: "Evaluación y seguimiento para alcanzar tu peso ideal de forma sana." 
-    },
-    { 
-        id: 3, 
-        titulo: "Nutrición Infantil", 
-        precio: 22000, 
-        imagen: "/Imagenes/Servicios/infantil.jpg", 
-        descripcion: "Asesoría nutricional para el desarrollo saludable de los niños." 
-    },
-    { 
-        id: 4, 
-        titulo: "Asesoría Vegana/Vegetariana", 
-        precio: 23000, 
-        imagen: "/Imagenes/Servicios/vegana.jpg", 
-        descripcion: "Transición y mantenimiento seguro de dietas basadas en plantas." 
-    }
-];
+export interface ServicioItem {
+    id: number;
+    titulo: string;
+    descripcion: string;
+    precio: number;
+    imagen: string;
+}
 
 function Servicios() {
+    const [servicios, setServicios] = useState<ServicioItem[]>([]);
     const [busqueda, setBusqueda] = useState("");
+    const [cargando, setCargando] = useState(true);
 
-    const agregarAlCarrito = (servicio: any) => {
+    useEffect(() => {
+        const cargarServicios = async () => {
+            try {
+                const respuesta = await fetch("http://localhost:8083/api/servicios");
+                if (!respuesta.ok) {
+                    throw new Error(`Error HTTP ${respuesta.status}`);
+                }
+                const datos: ServicioItem[] = await respuesta.json();
+                setServicios(datos);
+            } catch (error) {
+                console.error("Error al cargar servicios:", error);
+            } finally {
+                setCargando(false);
+            }
+        };
+
+        cargarServicios();
+    }, []);
+
+    const agregarAlCarrito = (servicio: ServicioItem) => {
         const guardado = localStorage.getItem("miReserva");
-        let listaActual = guardado ? JSON.parse(guardado) : [];
+        const listaActual = guardado ? JSON.parse(guardado) : [];
         listaActual.push(servicio);
         localStorage.setItem("miReserva", JSON.stringify(listaActual));
         alert("Servicio agregado a tus reservas");
@@ -63,45 +61,51 @@ function Servicios() {
                 </div>
             </div>
 
-            <div className="row g-4">
-                {serviciosFiltrados.length === 0 ? (
-                    <div className="col-12 text-center mt-4">
-                        <p className="text-muted fs-5">No se encontraron servicios con ese nombre.</p>
-                    </div>
-                ) : (
-                    serviciosFiltrados.map((servicio) => (
-                        <div className="col-12 col-md-6 col-lg-3" key={servicio.id}>
-                            <div className="card h-100 shadow-sm">
-                                <img 
-                                    src={servicio.imagen} 
-                                    className="card-img-top" 
-                                    alt={servicio.titulo} 
-                                    style={{ height: '200px', objectFit: 'cover' }}
-                                />
-                                <div className="card-body d-flex flex-column">
-                                    <h5 className="card-title">{servicio.titulo}</h5>
-                                    <p className="card-text text-muted">{servicio.descripcion}</p>
-                                    <p className="text-primary fw-bold fs-5 mb-4">
-                                        ${servicio.precio.toLocaleString('es-CL')}
-                                    </p>
-                                    
-                                    <div className="mt-auto d-flex flex-column gap-2">
-                                        <Link to={`/servicio/${servicio.id}`} className="btn btn-outline-primary">
-                                            Ver Detalle
-                                        </Link>
-                                        <button 
-                                            onClick={() => agregarAlCarrito(servicio)} 
-                                            className="btn btn-success"
-                                        >
-                                            Reservar Hora
-                                        </button>
+            {cargando ? (
+                <div className="text-center mt-4">
+                    <p className="text-muted fs-5">Cargando catálogo de servicios...</p>
+                </div>
+            ) : (
+                <div className="row g-4">
+                    {serviciosFiltrados.length === 0 ? (
+                        <div className="col-12 text-center mt-4">
+                            <p className="text-muted fs-5">No se encontraron servicios con ese nombre.</p>
+                        </div>
+                    ) : (
+                        serviciosFiltrados.map((servicio) => (
+                            <div className="col-12 col-md-6 col-lg-3" key={servicio.id}>
+                                <div className="card h-100 shadow-sm">
+                                    <img
+                                        src={servicio.imagen}
+                                        className="card-img-top"
+                                        alt={servicio.titulo}
+                                        style={{ height: '200px', objectFit: 'cover' }}
+                                    />
+                                    <div className="card-body d-flex flex-column">
+                                        <h5 className="card-title">{servicio.titulo}</h5>
+                                        <p className="card-text text-muted">{servicio.descripcion}</p>
+                                        <p className="text-primary fw-bold fs-5 mb-4">
+                                            ${servicio.precio.toLocaleString('es-CL')}
+                                        </p>
+
+                                        <div className="mt-auto d-flex flex-column gap-2">
+                                            <Link to={`/servicio/${servicio.id}`} className="btn btn-outline-primary">
+                                                Ver Detalle
+                                            </Link>
+                                            <button
+                                                onClick={() => agregarAlCarrito(servicio)}
+                                                className="btn btn-success"
+                                            >
+                                                Reservar Hora
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ))
-                )}
-            </div>
+                        ))
+                    )}
+                </div>
+            )}
         </main>
     );
 }

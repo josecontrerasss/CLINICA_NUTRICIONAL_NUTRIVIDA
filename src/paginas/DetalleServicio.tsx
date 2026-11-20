@@ -1,22 +1,50 @@
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { servicios } from "./Servicios";
+import type { ServicioItem } from "./Servicios";
 
 function DetalleServicio() {
     const { id } = useParams();
+    const [servicio, setServicio] = useState<ServicioItem | null>(null);
+    const [cargando, setCargando] = useState(true);
 
-    const servicio = servicios.find(
-        item => item.id === Number(id)
-    );
+    useEffect(() => {
+        const cargarDetalle = async () => {
+            try {
+                const respuesta = await fetch(`http://localhost:8083/api/servicios/${id}`);
+                if (!respuesta.ok) {
+                    setServicio(null);
+                    return;
+                }
+                const datos: ServicioItem = await respuesta.json();
+                setServicio(datos);
+            } catch (error) {
+                console.error("Error al cargar detalle del servicio:", error);
+                setServicio(null);
+            } finally {
+                setCargando(false);
+            }
+        };
+
+        cargarDetalle();
+    }, [id]);
 
     const agregarAlCarrito = () => {
         if (servicio) {
             const guardado = localStorage.getItem("miReserva");
-            let listaActual = guardado ? JSON.parse(guardado) : [];
+            const listaActual = guardado ? JSON.parse(guardado) : [];
             listaActual.push(servicio);
             localStorage.setItem("miReserva", JSON.stringify(listaActual));
             alert("Servicio agregado a tus reservas");
         }
     };
+
+    if (cargando) {
+        return (
+            <main className="container text-center my-5 flex-grow-1">
+                <p className="text-muted fs-5">Cargando detalle del servicio...</p>
+            </main>
+        );
+    }
 
     if (!servicio) {
         return (
@@ -39,10 +67,10 @@ function DetalleServicio() {
 
             <div className="row">
                 <div className="col-md-6 mb-4">
-                    <img 
-                        src={servicio.imagen} 
-                        className="img-fluid rounded shadow-sm w-100" 
-                        alt={servicio.titulo} 
+                    <img
+                        src={servicio.imagen}
+                        className="img-fluid rounded shadow-sm w-100"
+                        alt={servicio.titulo}
                         style={{ maxHeight: '400px', objectFit: 'cover' }}
                     />
                 </div>
@@ -52,7 +80,7 @@ function DetalleServicio() {
                     <h2 className="text-primary fw-bold mb-4">
                         Valor: ${servicio.precio.toLocaleString('es-CL')}
                     </h2>
-                    
+
                     <div className="d-flex gap-3">
                         <button onClick={agregarAlCarrito} className="btn btn-success btn-lg">
                             Reservar Hora

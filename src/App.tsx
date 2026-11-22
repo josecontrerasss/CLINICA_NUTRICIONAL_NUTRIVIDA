@@ -17,6 +17,7 @@ import AdminContactos from "./paginas/AdminContactos";
 import Pago from "./paginas/Pago";
 import RutaProtegida from "./componentes/RutaProtegida";
 import AdminMedicos from "./paginas/AdminMedicos";
+import AdminReservas from "./paginas/AdminReservas";
 
 function App() {
   return (
@@ -32,7 +33,18 @@ function App() {
           <Route path="/contacto" element={<><Navbar /><Contacto /><Footer /></>} />
           <Route path="/login" element={<><Navbar /><Login /><Footer /></>} />
           <Route path="/registro" element={<><Navbar /><Registro /><Footer /></>} />
-          <Route path="/pago" element={<><Navbar /><Pago /><Footer /></>} />
+          <Route
+              path="/pago"
+              element={
+                  <RutaProtegida>
+                      <>
+                          <Navbar />
+                          <Pago />
+                          <Footer />
+                      </>
+                  </RutaProtegida>
+              }
+          />
 
           <Route
               path="/admin"
@@ -59,13 +71,21 @@ function App() {
               }
           />
           <Route
-             path="/admin-medicos"
-             element={
+              path="/admin-medicos"
+              element={
                   <RutaProtegida rolRequerido="ADMINISTRADOR">
                       <AdminMedicos />
                   </RutaProtegida>
               }
-/>
+          />
+          <Route
+              path="/admin-reservas"
+              element={
+                  <RutaProtegida rolRequerido="ADMINISTRADOR">
+                      <AdminReservas />
+                  </RutaProtegida>
+              }
+          />
       </Routes>
     </div>
   );

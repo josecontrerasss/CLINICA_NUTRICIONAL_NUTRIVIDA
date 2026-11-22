@@ -1,95 +1,112 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { obtenerToken, obtenerUsuario, cerrarSesion } from "../utilidades/auth";
+
+interface ItemCarritoPago {
+    id: number;
+    titulo: string;
+    precio: number;
+    medicoNombre?: string;
+    horarioId?: number;
+    fecha?: string;
+    horaInicio?: string;
+}
 
 function Pago() {
+    const [items, setItems] = useState<ItemCarritoPago[]>([]);
     const [total, setTotal] = useState(0);
-    const [servicios, setServicios] = useState<any[]>([]);
-    
-    const [pagoExitoso, setPagoExitoso] = useState(false);
-    const [datosBoleta, setDatosBoleta] = useState<any>(null);
+    const [metodoPago, setMetodoPago] = useState("Tarjeta de Débito");
+    const [nombreTarjeta, setNombreTarjeta] = useState("");
+    const [numeroTarjeta, setNumeroTarjeta] = useState("");
+    const [vencimiento, setVencimiento] = useState("");
+    const [cvv, setCvv] = useState("");
+    const [procesando, setProcesando] = useState(false);
+    const [errorPago, setErrorPago] = useState("");
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const guardado = localStorage.getItem("miReserva");
         if (guardado) {
-            const lista = JSON.parse(guardado);
-            setServicios(lista);
-            const sumaTotal = lista.reduce((acumulador: number, item: any) => acumulador + item.precio, 0);
+            const lista: ItemCarritoPago[] = JSON.parse(guardado);
+            setItems(lista);
+            const sumaTotal = lista.reduce((acumulador, item) => acumulador + item.precio, 0);
             setTotal(sumaTotal);
+        }
+
+        const usuario = obtenerUsuario();
+        if (usuario) {
+            setNombreTarjeta(usuario.nombre);
         }
     }, []);
 
-    const procesarPago = (e: React.FormEvent) => {
+    const procesarPago = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        const numeroBoleta = Math.floor(Math.random() * 1000000) + 1000;
-        const fecha = new Date().toLocaleDateString('es-CL', {
-            year: 'numeric', month: 'long', day: 'numeric', 
-            hour: '2-digit', minute: '2-digit'
-        });
+        setErrorPago("");
 
-        setDatosBoleta({
-            numero: numeroBoleta,
-            fecha: fecha,
-            items: servicios,
-            total: total
-        });
+        const token = obtenerToken();
+        const usuario = obtenerUsuario();
 
-        localStorage.removeItem("miReserva");
-        setPagoExitoso(true);
+        if (!token || !usuario) {
+            navigate("/login");
+            return;
+        }
+
+        if (items.length === 0) {
+            setErrorPago("No tienes reservas en el carrito.");
+            return;
+        }
+
+        const itemsInvalidos = items.some(item => !item.horarioId);
+        if (itemsInvalidos) {
+            setErrorPago("Hay servicios sin especialista u horario asignado. Regresa a Mis Reservas y vuelve a seleccionarlos.");
+            return;
+        }
+
+        setProcesando(true);
+
+        try {
+            const payload = {
+                usuarioNombre: nombreTarjeta.trim() || usuario.nombre,
+                metodoPago,
+                items: items.map(item => ({
+                    servicioId: item.id,
+                    horarioId: item.horarioId
+                }))
+            };
+
+            const respuesta = await fetch("http://localhost:8085/api/reservas", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (respuesta.status === 401 || respuesta.status === 403) {
+                cerrarSesion();
+                navigate("/login");
+                return;
+            }
+
+            const datos = await respuesta.json();
+
+            if (!respuesta.ok) {
+                setErrorPago(datos.mensaje || "No se pudo procesar la reserva.");
+                return;
+            }
+
+            localStorage.removeItem("miReserva");
+            alert(`¡Pago procesado con éxito! Boleta N° ${datos.numeroBoleta} emitida.`);
+            navigate("/reserva");
+        } catch (error) {
+            console.error("Error al procesar pago:", error);
+            setErrorPago("Error de conexión con el servidor de reservas.");
+        } finally {
+            setProcesando(false);
+        }
     };
-
-    if (pagoExitoso && datosBoleta) {
-        return (
-            <main className="container my-5 flex-grow-1 d-flex justify-content-center align-items-center">
-                <div className="card shadow-lg border-0 rounded-4" style={{ maxWidth: '550px', width: '100%' }}>
-                    <div className="card-header bg-success text-white text-center py-4 rounded-top-4">
-                        <h2 className="mb-0 fw-bold">¡Pago Exitoso!</h2>
-                        <p className="mb-0 mt-1">Tu reserva ha sido confirmada</p>
-                    </div>
-                    
-                    <div className="card-body p-4 p-md-5 bg-white">
-                        <div className="text-center mb-4">
-                            <h4 className="text-primary fw-bold text-uppercase border-bottom pb-3">Boleta Electrónica</h4>
-                        </div>
-                        
-                        <div className="row mb-4 text-muted">
-                            <div className="col-6">
-                                <p className="mb-1"><strong>N° Boleta:</strong> {datosBoleta.numero}</p>
-                                <p className="mb-1"><strong>Empresa:</strong> NutriVida SpA</p>
-                            </div>
-                            <div className="col-6 text-end">
-                                <p className="mb-1"><strong>Fecha:</strong> {datosBoleta.fecha}</p>
-                                <p className="mb-1"><strong>Ciudad:</strong> Temuco, CL</p>
-                            </div>
-                        </div>
-
-                        <div className="mb-4">
-                            <h6 className="fw-bold mb-3 text-dark">Detalle de Servicios:</h6>
-                            <ul className="list-group list-group-flush mb-3 border-top border-bottom">
-                                {datosBoleta.items.map((item: any, index: number) => (
-                                    <li key={index} className="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
-                                        <span className="text-secondary">{item.titulo || item.nombre}</span>
-                                        <span className="fw-bold text-dark">${item.precio.toLocaleString('es-CL')}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        <div className="d-flex justify-content-between align-items-center mb-5 bg-light p-4 rounded-3 border">
-                            <h5 className="mb-0 fw-bold text-dark">TOTAL PAGADO:</h5>
-                            <h3 className="mb-0 text-success fw-bold">${datosBoleta.total.toLocaleString('es-CL')}</h3>
-                        </div>
-
-                        <div className="d-grid">
-                            <Link to="/" className="btn btn-primary btn-lg fw-bold shadow-sm rounded-3">
-                                Volver al Inicio
-                            </Link>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        );
-    }
 
     return (
         <main className="container my-5 flex-grow-1">
@@ -101,38 +118,95 @@ function Pago() {
                         </div>
                         <div className="card-body p-4 p-md-5">
                             <div className="text-center mb-4">
-                                <p className="text-muted mb-1">Total a Pagar</p>
+                                <p className="text-muted mb-1">Total a Pagar ({items.length} consulta{items.length === 1 ? "" : "s"})</p>
                                 <h2 className="text-success fw-bold">
                                     ${total.toLocaleString('es-CL')}
                                 </h2>
                             </div>
-                            
+
+                            {errorPago && (
+                                <div className="alert alert-danger" role="alert">
+                                    {errorPago}
+                                </div>
+                            )}
+
                             <form onSubmit={procesarPago}>
                                 <div className="mb-3">
-                                    <label className="form-label fw-bold">Nombre en la tarjeta</label>
-                                    <input type="text" className="form-control form-control-lg bg-light" required placeholder="Ej: Juan Pérez" />
+                                    <label className="form-label fw-bold">Medio de pago</label>
+                                    <select
+                                        className="form-select form-select-lg bg-light"
+                                        value={metodoPago}
+                                        onChange={(e) => setMetodoPago(e.target.value)}
+                                    >
+                                        <option value="Tarjeta de Débito">Tarjeta de Débito (Redcompra)</option>
+                                        <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                                    </select>
                                 </div>
+
+                                <div className="mb-3">
+                                    <label className="form-label fw-bold">Nombre en la tarjeta</label>
+                                    <input
+                                        type="text"
+                                        className="form-control form-control-lg bg-light"
+                                        required
+                                        placeholder="Ej: María López"
+                                        value={nombreTarjeta}
+                                        onChange={(e) => setNombreTarjeta(e.target.value)}
+                                    />
+                                </div>
+
                                 <div className="mb-3">
                                     <label className="form-label fw-bold">Número de tarjeta</label>
-                                    <input type="text" className="form-control form-control-lg bg-light" required placeholder="XXXX XXXX XXXX XXXX" maxLength={16} minLength={16} />
+                                    <input
+                                        type="text"
+                                        className="form-control form-control-lg bg-light"
+                                        required
+                                        placeholder="XXXX XXXX XXXX XXXX"
+                                        maxLength={16}
+                                        minLength={16}
+                                        value={numeroTarjeta}
+                                        onChange={(e) => setNumeroTarjeta(e.target.value)}
+                                    />
                                 </div>
+
                                 <div className="row mb-4">
                                     <div className="col-6">
                                         <label className="form-label fw-bold">Vencimiento</label>
-                                        <input type="text" className="form-control form-control-lg bg-light" required placeholder="MM/YY" maxLength={5} />
+                                        <input
+                                            type="text"
+                                            className="form-control form-control-lg bg-light"
+                                            required
+                                            placeholder="MM/YY"
+                                            maxLength={5}
+                                            value={vencimiento}
+                                            onChange={(e) => setVencimiento(e.target.value)}
+                                        />
                                     </div>
                                     <div className="col-6">
                                         <label className="form-label fw-bold">CVV</label>
-                                        <input type="password" className="form-control form-control-lg bg-light" required placeholder="123" maxLength={3} minLength={3} />
+                                        <input
+                                            type="password"
+                                            className="form-control form-control-lg bg-light"
+                                            required
+                                            placeholder="123"
+                                            maxLength={3}
+                                            minLength={3}
+                                            value={cvv}
+                                            onChange={(e) => setCvv(e.target.value)}
+                                        />
                                     </div>
                                 </div>
-                                
+
                                 <div className="d-grid gap-3">
-                                    <button type="submit" className="btn btn-success btn-lg fw-bold shadow-sm">
-                                        Pagar Reserva
+                                    <button
+                                        type="submit"
+                                        className="btn btn-success btn-lg fw-bold shadow-sm"
+                                        disabled={procesando || items.length === 0}
+                                    >
+                                        {procesando ? "Procesando pago..." : "Pagar Reserva"}
                                     </button>
-                                    <Link to="/servicios" className="btn btn-outline-secondary btn-lg fw-bold">
-                                        Cancelar
+                                    <Link to="/reserva" className="btn btn-outline-secondary btn-lg fw-bold">
+                                        Volver al Carrito
                                     </Link>
                                 </div>
                             </form>

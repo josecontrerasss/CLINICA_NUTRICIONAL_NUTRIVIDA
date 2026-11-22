@@ -33,14 +33,6 @@ function Servicios() {
         cargarServicios();
     }, []);
 
-    const agregarAlCarrito = (servicio: ServicioItem) => {
-        const guardado = localStorage.getItem("miReserva");
-        const listaActual = guardado ? JSON.parse(guardado) : [];
-        listaActual.push(servicio);
-        localStorage.setItem("miReserva", JSON.stringify(listaActual));
-        alert("Servicio agregado a tus reservas");
-    };
-
     const serviciosFiltrados = servicios.filter((servicio) =>
         servicio.titulo.toLowerCase().includes(busqueda.toLowerCase())
     );
@@ -92,12 +84,9 @@ function Servicios() {
                                             <Link to={`/servicio/${servicio.id}`} className="btn btn-outline-primary">
                                                 Ver Detalle
                                             </Link>
-                                            <button
-                                                onClick={() => agregarAlCarrito(servicio)}
-                                                className="btn btn-success"
-                                            >
+                                            <Link to={`/servicio/${servicio.id}`} className="btn btn-success">
                                                 Reservar Hora
-                                            </button>
+                                            </Link>
                                         </div>
                                     </div>
                                 </div>

@@ -103,6 +103,9 @@ function AdminContactos() {
                     <li className="nav-item">
                         <Link to="/admin-contactos" className="nav-link text-info px-0 fw-bold">Bandeja de Mensajes</Link>
                     </li>
+                    <li className="nav-item">
+                        <Link to="/admin-reservas" className="nav-link text-white px-0">Reservas y Boletas</Link>
+                    </li>
                     <li className="nav-item mt-4">
                         <Link to="/login" className="nav-link text-danger px-0">Cerrar Sesión</Link>
                     </li>

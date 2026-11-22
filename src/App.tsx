@@ -16,6 +16,7 @@ import AdminUsuarios from "./paginas/AdminUsuarios";
 import AdminContactos from "./paginas/AdminContactos";
 import Pago from "./paginas/Pago";
 import RutaProtegida from "./componentes/RutaProtegida";
+import AdminMedicos from "./paginas/AdminMedicos";
 
 function App() {
   return (
@@ -57,6 +58,14 @@ function App() {
                   </RutaProtegida>
               }
           />
+          <Route
+             path="/admin-medicos"
+             element={
+                  <RutaProtegida rolRequerido="ADMINISTRADOR">
+                      <AdminMedicos />
+                  </RutaProtegida>
+              }
+/>
       </Routes>
     </div>
   );

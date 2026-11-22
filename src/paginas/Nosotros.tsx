@@ -1,9 +1,39 @@
+import { useState, useEffect } from "react";
+
+export interface MedicoItem {
+    id: number;
+    nombreCompleto: string;
+    especialidad: string;
+    imagen: string;
+    activo: boolean;
+}
+
 function Nosotros() {
+    const [medicos, setMedicos] = useState<MedicoItem[]>([]);
+    const [cargando, setCargando] = useState(true);
+
+    useEffect(() => {
+        const cargarMedicos = async () => {
+            try {
+                const respuesta = await fetch("http://localhost:8084/api/medicos");
+                if (!respuesta.ok) {
+                    throw new Error(`Error HTTP ${respuesta.status}`);
+                }
+                const datos: MedicoItem[] = await respuesta.json();
+                setMedicos(datos);
+            } catch (error) {
+                console.error("Error al cargar equipo clínico:", error);
+            } finally {
+                setCargando(false);
+            }
+        };
+
+        cargarMedicos();
+    }, []);
+
     return (
         <main className="flex-grow-1 bg-light py-4">
             <section id="nosotros" className="container my-5">
-                
-                {/* Nueva sección: ¿Quiénes somos? con diseño de Tarjeta Dividida */}
                 <div className="row justify-content-center mb-5">
                     <div className="col-lg-10">
                         <div className="card shadow-lg border-0 rounded-4 overflow-hidden">
@@ -12,7 +42,7 @@ function Nosotros() {
                                     <h2 className="fw-bold text-center">Clínica NutriVida</h2>
                                     <p className="lead text-center mb-0 mt-2">Salud y bienestar en Temuco</p>
                                 </div>
-                                
+
                                 <div className="col-md-8 p-5 bg-white text-start">
                                     <h3 className="mb-4 text-primary fw-bold">¿Quiénes somos?</h3>
                                     <p className="text-secondary" style={{ lineHeight: "1.8", fontSize: "1.1rem" }}>
@@ -28,36 +58,29 @@ function Nosotros() {
                 </div>
 
                 <h2 className="subtitulo mb-4 text-center fw-bold text-dark">Nuestro equipo Clínico</h2>
-                <div className="card-group mb-5 shadow-sm rounded-4 overflow-hidden">
-                    <div className="card border-0 border-end">
-                        <img src="/Imagenes/Doctores/doktor1.jpg" className="card-img-top" alt="Nutricionista Diego Sepúlveda" style={{ objectFit: 'cover', height: '250px' }} />
-                        <div className="card-body text-center bg-white">
-                            <h5 className="card-title fw-bold">Diego Sepúlveda</h5>
-                            <p className="card-text text-muted">Nutrición deportiva</p>
-                        </div>
+                {cargando ? (
+                    <p className="text-center text-muted mb-5">Cargando equipo clínico...</p>
+                ) : (
+                    <div className="card-group mb-5 shadow-sm rounded-4 overflow-hidden">
+                        {medicos.map((medico, index) => (
+                            <div
+                                key={medico.id}
+                                className={`card border-0 ${index < medicos.length - 1 ? "border-end" : ""}`}
+                            >
+                                <img
+                                    src={medico.imagen}
+                                    className="card-img-top"
+                                    alt={`Nutricionista ${medico.nombreCompleto}`}
+                                    style={{ objectFit: "cover", height: "250px" }}
+                                />
+                                <div className="card-body text-center bg-white">
+                                    <h5 className="card-title fw-bold">{medico.nombreCompleto}</h5>
+                                    <p className="card-text text-muted">{medico.especialidad}</p>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                    <div className="card border-0 border-end">
-                        <img src="/Imagenes/Doctores/doktor3.jpg" className="card-img-top" alt="Nutricionista Carolina Muñoz" style={{ objectFit: 'cover', height: '250px' }} />
-                        <div className="card-body text-center bg-white">
-                            <h5 className="card-title fw-bold">Carolina Muñoz</h5>
-                            <p className="card-text text-muted">Pérdida de peso</p>
-                        </div>
-                    </div>
-                    <div className="card border-0 border-end">
-                        <img src="/Imagenes/Doctores/doktor2.jpg" className="card-img-top" alt="Nutricionista Andrés Painemal" style={{ objectFit: 'cover', height: '250px' }} />
-                        <div className="card-body text-center bg-white">
-                            <h5 className="card-title fw-bold">Andrés Painemal</h5>
-                            <p className="card-text text-muted">Enfermedades metabólicas</p>
-                        </div>
-                    </div>
-                    <div className="card border-0">
-                        <img src="/Imagenes/Doctores/doktor4.jpg" className="card-img-top" alt="Nutricionista Paula Riquelme" style={{ objectFit: 'cover', height: '250px' }} />
-                        <div className="card-body text-center bg-white">
-                            <h5 className="card-title fw-bold">Paula Riquelme</h5>
-                            <p className="card-text text-muted">Alimentación vegetariana</p>
-                        </div>
-                    </div>
-                </div>
+                )}
 
                 <h2 className="subtitulo mb-4 text-center fw-bold text-dark mt-5">Nuestro equipo desarrollador</h2>
                 <div className="row g-4 justify-content-center">

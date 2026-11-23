@@ -88,6 +88,9 @@ function AdminReservas() {
                     <li className="nav-item">
                         <Link to="/admin-reservas" className="nav-link text-info px-0 fw-bold">Reservas y Boletas</Link>
                     </li>
+                    <li className="nav-item">
+                        <Link to="/admin-novedades" className="nav-link text-white px-0">Mantenedor Novedades</Link>
+                    </li>
                     <li className="nav-item mt-4">
                         <button
                             onClick={manejarCerrarSesion}

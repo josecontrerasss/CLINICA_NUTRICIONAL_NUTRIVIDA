@@ -18,6 +18,7 @@ import Pago from "./paginas/Pago";
 import RutaProtegida from "./componentes/RutaProtegida";
 import AdminMedicos from "./paginas/AdminMedicos";
 import AdminReservas from "./paginas/AdminReservas";
+import AdminNovedades from "./paginas/AdminNovedades";
 
 function App() {
   return (
@@ -83,6 +84,14 @@ function App() {
               element={
                   <RutaProtegida rolRequerido="ADMINISTRADOR">
                       <AdminReservas />
+                  </RutaProtegida>
+              }
+          />
+          <Route
+              path="/admin-novedades"
+              element={
+                  <RutaProtegida rolRequerido="ADMINISTRADOR">
+                      <AdminNovedades />
                   </RutaProtegida>
               }
           />

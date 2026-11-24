@@ -77,3 +77,21 @@ export const validarDireccion = (direccion: string): string => {
     if (direccion.length > 300) return "Máximo 300 caracteres.";
     return "";
 };
+
+export const validarNumeroTarjeta = (numero: string): string => {
+    if (numero.trim() === "") return "El número de tarjeta es obligatorio.";
+    if (!/^\d{16}$/.test(numero)) return "El número de tarjeta debe tener exactamente 16 dígitos.";
+    return "";
+};
+
+export const validarVencimiento = (vencimiento: string): string => {
+    if (vencimiento.trim() === "") return "La fecha de vencimiento es obligatoria.";
+    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(vencimiento.trim())) return "Formato inválido. Usa MM/AA (ej: 08/28).";
+    return "";
+};
+
+export const validarCvv = (cvv: string): string => {
+    if (cvv.trim() === "") return "El código CVV es obligatorio.";
+    if (!/^\d{3}$/.test(cvv)) return "El CVV debe tener 3 dígitos numéricos.";
+    return "";
+};

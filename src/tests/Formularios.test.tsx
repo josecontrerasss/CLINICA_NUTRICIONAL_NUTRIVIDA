@@ -1,10 +1,14 @@
 //@vitest-environment jsdom
-import { render, screen, fireEvent } from "@testing-library/react";
-import { test, expect } from "vitest";
+import { render, screen, fireEvent, cleanup } from "@testing-library/react";
+import { test, expect, afterEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import FormularioContacto from "../componentes/organismos/FormularioContacto";
 import FormularioLogin from "../componentes/organismos/FormularioLogin";
 import FormularioRegistro from "../componentes/organismos/FormularioRegistro";
+
+afterEach(() => {
+    cleanup();
+});
 
 test("10. FormularioContacto muestra error en pantalla si el correo está vacío al intentar enviar", () => {
     render(<FormularioContacto />);
@@ -23,13 +27,13 @@ test("11. FormularioLogin muestra mensaje de error si se intenta ingresar sin co
     expect(screen.getByText("La contraseña es obligatoria.")).toBeDefined();
 });
 
-test("12. FormularioRegistro incluye el selector desplegable para el Tipo de Usuario", () => {
+test("12. FormularioRegistro incluye el selector desplegable para la Región", () => {
     render(
         <MemoryRouter>
             <FormularioRegistro />
         </MemoryRouter>
     );
-    expect(screen.getByText("Seleccione un rol...")).toBeDefined();
-    expect(screen.getByText("Paciente")).toBeDefined();
-    expect(screen.getByText("Administrador")).toBeDefined();
+    expect(screen.getByText("Seleccione una región...")).toBeDefined();
+    expect(screen.getByText("Región de La Araucanía")).toBeDefined();
+    expect(screen.getByText("Región Metropolitana")).toBeDefined();
 });

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { obtenerToken, obtenerUsuario, cerrarSesion } from "../utilidades/auth";
+import { validarNombre, validarNumeroTarjeta, validarVencimiento, validarCvv } from "../utilidades/validaciones";
 
 interface ItemCarritoPago {
     id: number;
@@ -20,6 +21,12 @@ function Pago() {
     const [numeroTarjeta, setNumeroTarjeta] = useState("");
     const [vencimiento, setVencimiento] = useState("");
     const [cvv, setCvv] = useState("");
+
+    const [errorNombre, setErrorNombre] = useState("");
+    const [errorNumero, setErrorNumero] = useState("");
+    const [errorVencimiento, setErrorVencimiento] = useState("");
+    const [errorCvv, setErrorCvv] = useState("");
+
     const [procesando, setProcesando] = useState(false);
     const [errorPago, setErrorPago] = useState("");
 
@@ -43,6 +50,20 @@ function Pago() {
     const procesarPago = async (e: React.FormEvent) => {
         e.preventDefault();
         setErrorPago("");
+
+        const errNom = validarNombre(nombreTarjeta);
+        const errNum = validarNumeroTarjeta(numeroTarjeta);
+        const errVen = validarVencimiento(vencimiento);
+        const errCod = validarCvv(cvv);
+
+        setErrorNombre(errNom);
+        setErrorNumero(errNum);
+        setErrorVencimiento(errVen);
+        setErrorCvv(errCod);
+
+        if (errNom !== "" || errNum !== "" || errVen !== "" || errCod !== "") {
+            return;
+        }
 
         const token = obtenerToken();
         const usuario = obtenerUsuario();
@@ -130,7 +151,7 @@ function Pago() {
                                 </div>
                             )}
 
-                            <form onSubmit={procesarPago}>
+                            <form onSubmit={procesarPago} noValidate>
                                 <div className="mb-3">
                                     <label className="form-label fw-bold">Medio de pago</label>
                                     <select
@@ -148,11 +169,18 @@ function Pago() {
                                     <input
                                         type="text"
                                         className="form-control form-control-lg bg-light"
-                                        required
                                         placeholder="Ej: María López"
                                         value={nombreTarjeta}
-                                        onChange={(e) => setNombreTarjeta(e.target.value)}
+                                        onChange={(e) => {
+                                            setNombreTarjeta(e.target.value);
+                                            if (errorNombre) setErrorNombre("");
+                                        }}
                                     />
+                                    {errorNombre && (
+                                        <span className="text-danger d-block mt-1" style={{ fontSize: "12px" }}>
+                                            {errorNombre}
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="mb-3">
@@ -160,13 +188,19 @@ function Pago() {
                                     <input
                                         type="text"
                                         className="form-control form-control-lg bg-light"
-                                        required
                                         placeholder="XXXX XXXX XXXX XXXX"
                                         maxLength={16}
-                                        minLength={16}
                                         value={numeroTarjeta}
-                                        onChange={(e) => setNumeroTarjeta(e.target.value)}
+                                        onChange={(e) => {
+                                            setNumeroTarjeta(e.target.value.replace(/\D/g, ""));
+                                            if (errorNumero) setErrorNumero("");
+                                        }}
                                     />
+                                    {errorNumero && (
+                                        <span className="text-danger d-block mt-1" style={{ fontSize: "12px" }}>
+                                            {errorNumero}
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="row mb-4">
@@ -175,25 +209,38 @@ function Pago() {
                                         <input
                                             type="text"
                                             className="form-control form-control-lg bg-light"
-                                            required
-                                            placeholder="MM/YY"
+                                            placeholder="MM/AA"
                                             maxLength={5}
                                             value={vencimiento}
-                                            onChange={(e) => setVencimiento(e.target.value)}
+                                            onChange={(e) => {
+                                                setVencimiento(e.target.value);
+                                                if (errorVencimiento) setErrorVencimiento("");
+                                            }}
                                         />
+                                        {errorVencimiento && (
+                                            <span className="text-danger d-block mt-1" style={{ fontSize: "12px" }}>
+                                                {errorVencimiento}
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="col-6">
                                         <label className="form-label fw-bold">CVV</label>
                                         <input
                                             type="password"
                                             className="form-control form-control-lg bg-light"
-                                            required
                                             placeholder="123"
                                             maxLength={3}
-                                            minLength={3}
                                             value={cvv}
-                                            onChange={(e) => setCvv(e.target.value)}
+                                            onChange={(e) => {
+                                                setCvv(e.target.value.replace(/\D/g, ""));
+                                                if (errorCvv) setErrorCvv("");
+                                            }}
                                         />
+                                        {errorCvv && (
+                                            <span className="text-danger d-block mt-1" style={{ fontSize: "12px" }}>
+                                                {errorCvv}
+                                            </span>
+                                        )}
                                     </div>
                                 </div>
 
